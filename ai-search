@@ -1,0 +1,33 @@
+#!/bin/bash
+# ai-search: точка входа. Примеры:
+#   ./ai-search search как я настраивал locust
+#   ./ai-search status | index | index --full | start | stop | restart | logs
+set -euo pipefail
+APP="$(cd "$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")")" && pwd)"
+LABEL="com.local.ai-search"
+PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
+PY="$APP/.venv/bin/python"
+
+if [ ! -x "$PY" ]; then
+  echo "ai-search не установлен. Запустите: $APP/install.sh" >&2
+  exit 1
+fi
+
+case "${1:-}" in
+  start)
+    launchctl bootstrap "gui/$(id -u)" "$PLIST" 2>/dev/null || launchctl kickstart "gui/$(id -u)/$LABEL"
+    echo "Фоновая служба запущена." ;;
+  stop)
+    launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null && echo "Фоновая служба остановлена." || echo "Служба и так не запущена." ;;
+  restart)
+    launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
+    sleep 1
+    launchctl bootstrap "gui/$(id -u)" "$PLIST"
+    echo "Фоновая служба перезапущена." ;;
+  logs)
+    tail -n 50 -f "$HOME/.ai-search/logs/daemon.log" ;;
+  ""|-h|--help|help)
+    cd "$APP" && exec "$PY" -m ai_search --help ;;
+  *)
+    cd "$APP" && exec "$PY" -m ai_search "$@" ;;
+esac

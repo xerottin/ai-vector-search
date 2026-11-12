@@ -1,0 +1,14 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# macOS
+.DS_Store
+
+# Local data (normally lives in ~/.ai-search, just in case)
+*.db
+*.db-wal
+*.db-shm
+*.log

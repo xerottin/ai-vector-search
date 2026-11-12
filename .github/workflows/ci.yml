@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python syntax
+        run: python -m compileall -q ai_search
+      - name: Shell syntax
+        run: |
+          bash -n install.sh uninstall.sh ai-search
+          brew install shellcheck
+          shellcheck -S error install.sh uninstall.sh ai-search
+      - name: Config parses
+        run: python -c "import tomllib; tomllib.load(open('config.toml','rb'))"
